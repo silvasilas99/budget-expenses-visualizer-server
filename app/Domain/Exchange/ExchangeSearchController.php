@@ -17,8 +17,9 @@ class ExchangeSearchController extends Controller
         try {
             $params = $this->getQueryStringFormatedAsParameters($req);
             $data = $this->exchangeService->getDataWithFilters($params);
+            $formattedData = $this->formatDataToResponse($data, $req);
             return response()->json(
-                ['data' => $data]
+                $formattedData
             );
         } catch (\Throwable $th) {
             return response()->json(
@@ -30,11 +31,23 @@ class ExchangeSearchController extends Controller
     private function getQueryStringFormatedAsParameters (Request $req) {
         return collect($req->all())->map(
             function ($paramValue, $paramKey) {
+                if (in_array($paramValue, ExchangeService::RESERVED_NAMES))
+                    return;
                 return [
                     "value" => $paramValue,
                     "key" => $paramKey,
                 ];
             }
         )->filter()->values()->toArray();
+    }
+
+    private function formatDataToResponse (array $data, Request $req)
+    {
+        if ($req->input("groupBy", "")) {
+            $data = collect($data)
+                ->groupBy($req->input("groupBy", ""));
+            return $data;
+        }
+        return $data;
     }
 }

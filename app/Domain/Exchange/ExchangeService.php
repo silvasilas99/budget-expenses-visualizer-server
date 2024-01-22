@@ -4,6 +4,7 @@ namespace App\Domain\Exchange;
 use Illuminate\Support\Facades\Http;
 
 class ExchangeService {
+    public const RESERVED_NAMES = ["groupBy", "orderBy", "only"];
     private const RESOURCE_ID = "d4d8a7f0-d4be-4397-b950-f0c991438111";
 
     public function getDataWithFilters (
@@ -19,8 +20,9 @@ class ExchangeService {
                 ||  !data_get($param, "value")
                 ||  empty($param)
                 ||  empty(data_get($param, "value", []))
+                ||  in_array(data_get($param, "key"), self::RESERVED_NAMES)
                 ) {
-                    return;
+                    return $carry;
                 }
 
                 return $carry->where(
