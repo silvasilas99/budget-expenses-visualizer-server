@@ -4,13 +4,15 @@ namespace App\Domain\Exchange;
 use Illuminate\Support\Facades\Http;
 
 class ExchangeService {
-    public const RESERVED_NAMES = ["groupBy", "orderBy", "only"];
+    public const RESERVED_NAMES = ["groupBy", "sortBy", "only"];
     private const RESOURCE_ID = "d4d8a7f0-d4be-4397-b950-f0c991438111";
 
     public function getDataWithFilters (
         array $params = []
     ) : array {
         $data = $this->getDataFromExternalApi();
+        if (!$params)
+            return $data;
         return collect($params)->reduce(
             function ($carry, $param) use ($data) {
                 !$carry &&

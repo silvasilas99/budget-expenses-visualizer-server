@@ -17,9 +17,35 @@ class ExchangeSearchController extends Controller
         try {
             $params = $this->getQueryStringFormatedAsParameters($req);
             $data = $this->exchangeService->getDataWithFilters($params);
-            $formattedData = $this->formatDataToResponse($data, $req);
+            $aggroupedData = $this->aggroupData($data, $req->input("groupBy", ""));
             return response()->json(
-                $formattedData
+                $aggroupedData
+            );
+        } catch (\Throwable $th) {
+            return response()->json(
+                ['error' => $th->getMessage()]
+            );
+        }
+    }
+
+    public function getDataByAggroupment(string $counter, string $grouper, Request $req) {
+        try {
+            $data = $this->exchangeService->getDataWithFilters();
+            $formattedData =
+                collect($this->aggroupData($data, $grouper))->map(
+                    function ($value, $key) use ($counter, $grouper) {
+                        return [
+                            $grouper => $key,
+                            $counter =>
+                                collect($value)->map(
+                                    fn ($item) =>
+                                        floatval(data_get($item, $counter, 0))
+                                )->sum()
+                        ];
+                    }
+                )->sortBy($grouper)->values();
+            return response()->json(
+                [ "data" => $formattedData ]
             );
         } catch (\Throwable $th) {
             return response()->json(
@@ -41,11 +67,11 @@ class ExchangeSearchController extends Controller
         )->filter()->values()->toArray();
     }
 
-    private function formatDataToResponse (array $data, Request $req)
+    private function aggroupData (array $data, string $grouper)
     {
-        if ($req->input("groupBy", "")) {
+        if ($grouper) {
             $data = collect($data)
-                ->groupBy($req->input("groupBy", ""));
+                ->groupBy($grouper);
             return $data;
         }
         return $data;

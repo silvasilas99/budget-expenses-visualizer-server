@@ -24,8 +24,5 @@ Route::group([
     'prefix' => 'budget_exchanges',
 ], function () {
     Route::get('/find', [ExchangeSearchController::class, 'index'])->name('budget_exchanges.find');
-    Route::get('/findById/{id}', [ExchangeSearchController::class, 'findById'])->name('budget_exchanges.findById');
-    Route::post('/create', [ExchangeCrudController::class, 'store'])->name('budget_exchanges.create');
-    Route::put('/update/{id}', [ExchangeCrudController::class, 'update'])->name('budget_exchanges.update');
-    Route::delete('/destroy/{id}', [ExchangeCrudController::class, 'destroy'])->name('budget_exchanges.destroy');
+    Route::get('/show/{counter}/by/{grouper}', [ExchangeSearchController::class, 'getDataByAggroupment'])->name('budget_exchanges.getDataByAggroupment');
 });
